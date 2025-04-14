@@ -1,0 +1,200 @@
+/* Main View */
+.netLibram-view {
+    padding: 10px;
+}
+
+/* Tabs */
+.netLibram-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 15px;
+}
+
+.netLibram-tab-button {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+}
+
+.netLibram-tab-button:hover {
+    color: var(--text-normal);
+}
+
+.netLibram-tab-button.active {
+    color: var(--text-accent);
+    border-bottom: 2px solid var(--text-accent);
+}
+
+/* Input Fields */
+.netLibram-input-group {
+    margin-bottom: 15px;
+}
+
+.netLibram-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.netLibram-input-group input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background: var(--background-primary);
+    color: var(--text-normal);
+}
+
+/* Buttons */
+.netLibram-button-group {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.netLibram-roll-button {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.netLibram-roll-button:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+/* Results Section */
+.netLibram-results {
+    background-color: var(--background-secondary);
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.netLibram-dice-result, 
+.netLibram-effect-result {
+    margin-bottom: 15px;
+}
+
+.netLibram-dice-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-accent);
+    font-family: monospace;
+}
+
+.netLibram-effect-text {
+    line-height: 1.5;
+}
+
+/* Animation for dice roll */
+.netLibram-dice-rolled {
+    animation: dice-roll 0.5s ease-in-out;
+}
+
+@keyframes dice-roll {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Known Recipes List */
+.netLibram-recipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.netLibram-recipe-item {
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.netLibram-recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--background-secondary);
+    cursor: pointer;
+}
+
+.netLibram-recipe-outcome {
+    font-weight: 500;
+}
+
+.netLibram-expand-button {
+    background: transparent;
+    border: 1px solid var(--background-modifier-border);
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.netLibram-recipe-details {
+    padding: 15px;
+    background-color: var(--background-primary);
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.netLibram-recipe-ingredients, 
+.netLibram-recipe-effect {
+    margin-bottom: 15px;
+}
+
+.netLibram-recipe-ingredients h4, 
+.netLibram-recipe-effect h4 {
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.netLibram-recipe-ingredients ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+/* Error Message */
+.netLibram-error {
+    color: var(--text-error);
+    background-color: var(--background-modifier-error);
+    padding: 8px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+/* Settings Tab */
+.netLibram-add-recipe {
+    background-color: var(--background-secondary);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.netLibram-edit-recipe {
+    background-color: var(--background-secondary-alt);
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* Clear Button */
+.netLibram-clear-div {
+    background-color: var(--background-modifier-error-rgb);
+    background-color: rgba(var(--background-modifier-error-rgb), 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--text-error);
+    margin: 20px 0;
+}
+
+.netLibram-clear-button {
+    background-color: var(--text-error) !important;
+    color: white !important;
+}

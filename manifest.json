@@ -1,0 +1,10 @@
+{
+    "id": "netLibram-tracker",
+    "name": "NetLibram Tracker",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "Track and manage NetLibram recipes in Obsidian",
+    "author": "IronJade",
+    "authorUrl": "https://github.com/IronJade",
+    "isDesktopOnly": false
+}
