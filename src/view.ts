@@ -1,34 +1,34 @@
 import { ItemView, WorkspaceLeaf, App } from 'obsidian';
-import { NetLibramPlugin } from './main';
+import { NetLibramPluginAPI, ViewUpdate, NetLibramViewAPI } from './types';
 
-export enum ViewUpdate {
-    SETTINGS_CHANGED,
-    RECIPE_ADDED,
-    RECIPE_EDITED,
-    RECIPES_CLEARED
-}
-
-export class NetLibramView extends ItemView {
-    private plugin: NetLibramPlugin;
-    private contentEl: HTMLElement;
-    private inputsEl: HTMLElement;
-    private resultsEl: HTMLElement;
-    private knownRecipesEl: HTMLElement;
-    private ingredient1: HTMLInputElement;
-    private ingredient2: HTMLInputElement;
-    private ingredient3: HTMLInputElement;
-    private rollButton: HTMLButtonElement;
-    private resultText: HTMLElement;
-    private diceResult: HTMLElement;
-
+export class NetLibramView extends ItemView implements NetLibramViewAPI {
+    // Use protected instead of private for contentEl to match the base class
+    protected plugin: NetLibramPluginAPI;
+    protected inputsEl: HTMLElement;
+    protected resultsEl: HTMLElement;
+    protected knownRecipesEl: HTMLElement;
+    protected ingredient1: HTMLInputElement;
+    protected ingredient2: HTMLInputElement;
+    protected ingredient3: HTMLInputElement;
+    protected rollButton: HTMLButtonElement;
+    protected resultText: HTMLElement;
+    protected diceResult: HTMLElement;
+    // Make settings and saveSettingsCallback protected
+    protected settings: any;
+    protected saveSettingsCallback: () => Promise<void>;
+    
     constructor(
         leaf: WorkspaceLeaf,
-        private settings: any,
-        private saveSettings: () => Promise<void>,
-        private app: App
+        settings: any,
+        saveSettings: () => Promise<void>,
+        // Make app public as it is in the parent class
+        public app: App
     ) {
         super(leaf);
-        this.plugin = app.plugins.plugins['netLibram-tracker'] as NetLibramPlugin;
+        this.settings = settings;
+        this.saveSettingsCallback = saveSettings;
+        // Get the plugin instance from app.plugins
+        this.plugin = (app as any).plugins.plugins['netLibram-tracker'] as NetLibramPluginAPI;
     }
 
     getViewType(): string {
@@ -44,11 +44,12 @@ export class NetLibramView extends ItemView {
     }
 
     async onOpen() {
-        this.contentEl = this.containerEl.children[1].createDiv();
-        this.contentEl.addClass('netLibram-view');
+        // Use this.containerEl since it comes from the base class
+        const content = this.containerEl.children[1].createDiv();
+        content.addClass('netLibram-view');
 
         // Create tabs for Recipe Creator and Known Recipes
-        const tabsEl = this.contentEl.createDiv();
+        const tabsEl = content.createDiv();
         tabsEl.addClass('netLibram-tabs');
 
         const creatorTabButton = tabsEl.createEl('button');
@@ -60,7 +61,7 @@ export class NetLibramView extends ItemView {
         knownRecipesTabButton.setText('Known Recipes');
         knownRecipesTabButton.addClass('netLibram-tab-button');
 
-        const tabContentEl = this.contentEl.createDiv();
+        const tabContentEl = content.createDiv();
         tabContentEl.addClass('netLibram-tab-content');
 
         // Create Recipe Creator tab content
@@ -303,6 +304,6 @@ export class NetLibramView extends ItemView {
 
     async onClose() {
         // Clean up when view is closed
-        this.contentEl.empty();
+        this.containerEl.empty();
     }
 }
