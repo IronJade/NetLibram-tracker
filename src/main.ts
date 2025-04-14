@@ -1,199 +1,8 @@
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { NetLibramView, ViewUpdate } from './view';
+import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
+import NetLibramPlugin from './main';
+import { parseEffectsFile } from './effects';
 
-interface NetLibramRecipe {
-    ingredients: string[];
-    outcome: number;
-    effect: string;
-}
-
-interface NetLibramPluginSettings {
-    knownRecipes: NetLibramRecipe[];
-    effectsTable: Record<number, string>;
-}
-
-const DEFAULT_SETTINGS: NetLibramPluginSettings = {
-    knownRecipes: [],
-    effectsTable: {} // This would be populated with your actual effects table
-}
-
-export default class NetLibramPlugin extends Plugin {
-    settings: NetLibramPluginSettings;
-    view: NetLibramView;
-
-    async onload() {
-        await this.loadSettings();
-
-        // Register view
-        this.registerView(
-            'netLibram-view',
-            (leaf) => {
-                this.view = new NetLibramView(leaf, this.settings, this.saveSettings.bind(this), this.app);
-                return this.view;
-            }
-        );
-
-        // Add ribbon icon
-        this.addRibbonIcon('dice', 'NetLibram Tracker', () => {
-            this.activateView();
-        });
-
-        // Add command to open view
-        this.addCommand({
-            id: 'open-netLibram-tracker',
-            name: 'Open NetLibram Tracker',
-            callback: () => {
-                this.activateView();
-            }
-        });
-
-        // Register settings tab
-        this.addSettingTab(new NetLibramSettingTab(this.app, this));
-
-        // Load sample effects table if empty
-        if (Object.keys(this.settings.effectsTable).length === 0) {
-            this.loadSampleEffectsTable();
-        }
-    }
-
-    onunload() {
-        this.app.workspace.detachLeavesOfType('netLibram-view');
-    }
-
-    async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    }
-
-    async saveSettings() {
-        await this.saveData(this.settings);
-        if (this.view) {
-            this.view.handleViewUpdate(ViewUpdate.SETTINGS_CHANGED);
-        }
-    }
-
-    async activateView() {
-        const { workspace } = this.app;
-        
-        // Check if view is already open
-        const leaves = workspace.getLeavesOfType('netLibram-view');
-        if (leaves.length > 0) {
-            workspace.revealLeaf(leaves[0]);
-            return;
-        }
-
-        // If not open, create it in the right sidebar
-        await workspace.getRightLeaf(false).setViewState({
-            type: 'netLibram-view',
-            active: true,
-        });
-
-        workspace.revealLeaf(
-            workspace.getLeavesOfType('netLibram-view')[0]
-        );
-    }
-
-    loadSampleEffectsTable() {
-        // This would be populated with your actual effects data
-        // For demonstration, I'll add just a few sample effects
-        const sampleEffects: Record<number, string> = {
-            1: "Transmutation: Object becomes solid gold",
-            100: "Elemental: Creates a small flame that never extinguishes",
-            500: "Illusion: Creates a convincing illusion of the user's choice",
-            1000: "Healing: Cures any disease or poison",
-            5000: "Destruction: Causes a small explosion",
-            9999: "Reality Warping: Completely changes the nature of reality in the immediate area"
-        };
-
-        this.settings.effectsTable = sampleEffects;
-        this.saveSettings();
-    }
-
-    rollDice(): number {
-        // Roll 4 ten-sided dice for a number between 0001-10000
-        const d1 = Math.floor(Math.random() * 10); // 0-9
-        const d2 = Math.floor(Math.random() * 10); // 0-9
-        const d3 = Math.floor(Math.random() * 10); // 0-9
-        const d4 = Math.floor(Math.random() * 10); // 0-9
-        
-        // Combine to get 0000-9999, add 1 to get 0001-10000
-        return d1 * 1000 + d2 * 100 + d3 * 10 + d4 + 1;
-    }
-
-    getEffect(roll: number): string {
-        // Get closest effect based on roll
-        const keys = Object.keys(this.settings.effectsTable).map(Number).sort((a, b) => a - b);
-        
-        // Find the closest key that is less than or equal to the roll
-        let closestKey = keys[0];
-        for (const key of keys) {
-            if (key <= roll) {
-                closestKey = key;
-            } else {
-                break;
-            }
-        }
-        
-        return this.settings.effectsTable[closestKey] || "No effect found";
-    }
-
-    addRecipe(ingredients: string[], outcome: number, effect: string) {
-        this.settings.knownRecipes.push({
-            ingredients,
-            outcome,
-            effect
-        });
-        this.saveSettings();
-    }
-
-    clearRecipes() {
-        this.settings.knownRecipes = [];
-        this.saveSettings();
-    }
-
-    editRecipe(index: number, ingredients: string[], outcome: number, effect: string) {
-        if (index >= 0 && index < this.settings.knownRecipes.length) {
-            this.settings.knownRecipes[index] = {
-                ingredients,
-                outcome,
-                effect
-            };
-            this.saveSettings();
-        }
-    }
-
-    findRecipe(ingredients: string[]): NetLibramRecipe | null {
-        // Sort both arrays before comparison to ensure order doesn't matter
-        const sortedIngredients = [...ingredients].sort();
-        
-        return this.settings.knownRecipes.find(recipe => {
-            const sortedRecipeIngredients = [...recipe.ingredients].sort();
-            return sortedRecipeIngredients.every((item, index) => 
-                item.toLowerCase() === sortedIngredients[index].toLowerCase()
-            );
-        }) || null;
-    }
-
-    exportRecipes(): string {
-        return JSON.stringify(this.settings.knownRecipes, null, 2);
-    }
-
-    importRecipes(jsonData: string) {
-        try {
-            const recipes = JSON.parse(jsonData);
-            if (Array.isArray(recipes)) {
-                this.settings.knownRecipes = recipes;
-                this.saveSettings();
-                return true;
-            }
-            return false;
-        } catch (e) {
-            console.error("Failed to import recipes:", e);
-            return false;
-        }
-    }
-}
-
-class NetLibramSettingTab extends PluginSettingTab {
+export class NetLibramSettingTab extends PluginSettingTab {
     plugin: NetLibramPlugin;
     recipeListEl: HTMLElement;
 
@@ -207,6 +16,65 @@ class NetLibramSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         containerEl.createEl('h2', { text: 'NetLibram Tracker Settings' });
+
+        // Effects section
+        containerEl.createEl('h3', { text: 'Effects Table' });
+
+        // Display number of effects
+        const effectsCount = Object.keys(this.plugin.settings.effectsTable).length;
+        containerEl.createEl('p', { 
+            text: `Currently loaded: ${effectsCount} effects` 
+        });
+
+        // Add effects file import
+        const effectsDiv = containerEl.createDiv();
+        let effectsFile: File | null = null;
+        
+        new Setting(effectsDiv)
+            .setName('Import Effects Table')
+            .setDesc('Import custom effects from a text file (Format: "NNNN Description" per line)')
+            .addButton(button => button
+                .setButtonText('Select File')
+                .onClick(() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.txt';
+                    input.onchange = (e) => {
+                        const target = e.target as HTMLInputElement;
+                        if (target.files && target.files.length > 0) {
+                            effectsFile = target.files[0];
+                            button.setButtonText(effectsFile.name);
+                        }
+                    };
+                    input.click();
+                })
+            );
+            
+        new Setting(effectsDiv)
+            .addButton(button => button
+                .setButtonText('Import Effects')
+                .onClick(async () => {
+                    if (effectsFile) {
+                        const effects = await parseEffectsFile(effectsFile);
+                        const effectsCount = Object.keys(effects).length;
+                        
+                        if (effectsCount > 0) {
+                            this.plugin.settings.effectsTable = effects;
+                            await this.plugin.saveSettings();
+                            
+                            // Reload the settings page to show the new count
+                            this.display();
+                            
+                            // Show success message
+                            new Notice(`Successfully imported ${effectsCount} effects`);
+                        } else {
+                            new Notice('No valid effects found in the file');
+                        }
+                    } else {
+                        new Notice('Please select a file first');
+                    }
+                })
+            );
 
         // Add manual recipe section
         containerEl.createEl('h3', { text: 'Add Recipe Manually' });
@@ -311,6 +179,9 @@ class NetLibramSettingTab extends PluginSettingTab {
                         if (success) {
                             // Refresh recipe list
                             this.displayRecipeList();
+                            new Notice('Recipes imported successfully');
+                        } else {
+                            new Notice('Failed to import recipes. Invalid format.');
                         }
                     }
                 })
@@ -331,6 +202,7 @@ class NetLibramSettingTab extends PluginSettingTab {
             .onClick(() => {
                 this.plugin.clearRecipes();
                 this.displayRecipeList();
+                new Notice('All recipes have been cleared');
             })
         );
         
@@ -405,6 +277,7 @@ class NetLibramSettingTab extends PluginSettingTab {
                         if (newIng1 && newIng2 && newIng3) {
                             this.plugin.editRecipe(i, [newIng1, newIng2, newIng3], recipe.outcome, recipe.effect);
                             this.displayRecipeList();
+                            new Notice('Recipe updated');
                         }
                     })
                 )
@@ -414,6 +287,7 @@ class NetLibramSettingTab extends PluginSettingTab {
                         this.plugin.settings.knownRecipes.splice(i, 1);
                         this.plugin.saveSettings();
                         this.displayRecipeList();
+                        new Notice('Recipe deleted');
                     })
                 );
             
