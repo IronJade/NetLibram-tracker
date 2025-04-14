@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf, App } from 'obsidian';
-import NetLibramPlugin from './main';
+import { NetLibramPlugin } from './main';
 
 export enum ViewUpdate {
     SETTINGS_CHANGED,

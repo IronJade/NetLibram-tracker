@@ -1,5 +1,5 @@
 {
-    "name": "netLibram-tracker",
+    "name": "netlibram-tracker",
     "version": "1.0.0",
     "description": "Track and manage NetLibram recipes in Obsidian",
     "main": "main.js",

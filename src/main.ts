@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
-import NetLibramPlugin from './main';
+import { NetLibramPlugin } from './main';
 import { parseEffectsFile } from './effects';
 
 export class NetLibramSettingTab extends PluginSettingTab {
